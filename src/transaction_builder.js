@@ -8,7 +8,6 @@ var typeforce = require('typeforce')
 var types = require('./types')
 
 var ECPair = require('./ecpair')
-var ECSignature = require('./ecsignature')
 var Transaction = require('./transaction')
 
 // inspects a scriptSig w/ optional redeemScript and
@@ -86,7 +85,7 @@ function fixMultisigOrder (input, transaction, vin) {
       if (!signature) return false
 
       // TODO: avoid O(n) hashForSignature
-      var parsed = ECSignature.parseScriptSignature(signature)
+      var parsed = bscript.signature.decode(signature)
       var hash = transaction.hashForSignature(vin, input.redeemScript, parsed.hashType)
 
       // skip if signature does not match pubKey
@@ -428,7 +427,7 @@ TransactionBuilder.prototype.sign = function (vin, keyPair, redeemScript, hashTy
     if (!kpPubKey.equals(pubKey)) return false
     if (input.signatures[i]) throw new Error('Signature already exists')
 
-    input.signatures[i] = keyPair.sign(signatureHash).toScriptSignature(hashType)
+    input.signatures[i] = bscript.signature.encode(keyPair.sign(signatureHash), hashType)
     return true
   })
 
