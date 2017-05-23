@@ -144,14 +144,21 @@ function verify (hash, signature, Q) {
   // 1.4.5 (cont.) Enforce R is not at infinity
   if (secp256k1.isInfinity(R)) return false
 
-  // 1.4.6 Convert the field element R.x to an integer
-  var xR = R.affineX
+  var xr = r
+  var pr = R
+  var p = secp256k1.p
+  var prz2 = pr.z.square().mod(p)
 
-  // 1.4.7 Set v = xR mod n
-  var v = xR.mod(n)
+  /* xr * pr.z^2 mod p == pr.x, so the signature is valid. */
+  if (xr.multiply(prz2).mod(p).equals(pr.x)) return true
 
-  // 1.4.8 If v = r, output "valid", and if v != r, output "invalid"
-  return v.equals(r)
+  /* xr + n >= p, so we can skip testing the second case. */
+  if (xr.compareTo(p.subtract(n)) >= 0) return false
+
+  /* (xr + n) * pr.z^2 mod p == pr.x, so the signature is valid. */
+  if (xr.add(n).multiply(prz2).mod(p).equals(pr.x)) return true
+
+  return false
 }
 
 module.exports = {
