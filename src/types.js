@@ -15,8 +15,8 @@ function Satoshi (value) {
   return typeforce.UInt53(value) && value <= SATOSHI_MAX
 }
 
-var EC_ZERO = new Buffer('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
-var EC_UINT_MAX = new Buffer('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 'hex')
+var EC_ZERO = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
+var EC_UINT_MAX = Buffer.from('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 'hex')
 
 function UInt256 (value) {
   return Buffer.isBuffer(value) &&

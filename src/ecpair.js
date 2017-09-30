@@ -56,13 +56,13 @@ function __fromPublicKeyPoint (Q, options) {
 
 function fromPrivateKeyBuffer (buffer, options) {
   typeforce(types.UInt256, buffer)
-  var d = BigInteger.fromBuffer(d)
+  var d = BigInteger.fromBuffer(buffer)
 
   return new ECPair(d, null, options)
 }
 
 function fromPublicKeyBuffer (buffer, network) {
-  typeforce(types.ECPoint, Q)
+  typeforce(types.UInt256, buffer)
   var Q = ecurve.Point.decodeFrom(secp256k1, buffer)
 
   return new ECPair(null, Q, {
@@ -106,10 +106,6 @@ function makeRandom (options) {
   } while (!types.UInt256(buffer))
 
   return fromPrivateKeyBuffer(buffer, options)
-}
-
-ECPair.prototype.getAddress = function () {
-  return baddress.toBase58Check(bcrypto.hash160(this.getPublicKeyBuffer()), this.getNetwork().pubKeyHash)
 }
 
 ECPair.prototype.getNetwork = function () {
