@@ -1,5 +1,3 @@
-var baddress = require('./address')
-var bcrypto = require('./crypto')
 var ecdsa = require('./ecdsa')
 var randomBytes = require('randombytes')
 var typeforce = require('typeforce')
@@ -22,24 +20,15 @@ function ECPair (d, Q, options) {
 
   if (d) {
     this.d = d
+    this.Q = secp256k1.G.multiply(this.d)
   } else {
-    this.__Q = Q
+    this.Q = Q
   }
 
   options = options || {}
   this.compressed = options.compressed === undefined ? true : options.compressed
   this.network = options.network || NETWORKS.bitcoin
 }
-
-Object.defineProperty(ECPair.prototype, 'Q', {
-  get: function () {
-    if (!this.__Q && this.d) {
-      this.__Q = secp256k1.G.multiply(this.d)
-    }
-
-    return this.__Q
-  }
-})
 
 // XXX: internal use only
 function __fromPrivateKeyInteger (d, options) {
@@ -61,6 +50,10 @@ function fromPrivateKeyBuffer (buffer, options) {
   return new ECPair(d, null, options)
 }
 
+ECPair.prototype.toPublicKeyBuffer = function () {
+  return this.Q.getEncoded(this.compressed)
+}
+
 function fromPublicKeyBuffer (buffer, network) {
   typeforce(types.UInt256, buffer)
   var Q = ecurve.Point.decodeFrom(secp256k1, buffer)
@@ -69,6 +62,49 @@ function fromPublicKeyBuffer (buffer, network) {
     compressed: Q.compressed,
     network: network
   })
+}
+
+ECPair.prototype.toPrivateKeyBuffer = function () {
+  return this.d.toBuffer(32)
+}
+
+function makeRandom (options) {
+  options = options || {}
+
+  var rng = options.rng || randomBytes
+  var buffer
+  do {
+    buffer = rng(32)
+  } while (!types.UInt256(buffer))
+
+  return fromPrivateKeyBuffer(buffer, options)
+}
+
+ECPair.prototype.getNetwork = function () {
+  return this.network
+}
+
+ECPair.prototype.neutered = function () {
+  return __fromPublicKeyPoint(this.Q, {
+    compressed: this.compressed,
+    network: this.network
+  })
+}
+
+ECPair.prototype.sign = function (hash) {
+  if (!this.d) throw new Error('Missing private key')
+
+  return ecdsa.sign(hash, this.d)
+}
+
+ECPair.prototype.verify = function (hash, signature) {
+  return ecdsa.verify(hash, signature, this.Q)
+}
+
+ECPair.prototype.toWIF = function () {
+  if (!this.d) throw new Error('Missing private key')
+
+  return wif.encode(this.network.wif, this.d.toBuffer(32), this.compressed)
 }
 
 function fromWIF (string, network) {
@@ -94,49 +130,6 @@ function fromWIF (string, network) {
     compressed: decoded.compressed,
     network: network
   })
-}
-
-function makeRandom (options) {
-  options = options || {}
-
-  var rng = options.rng || randomBytes
-  var buffer
-  do {
-    buffer = rng(32)
-  } while (!types.UInt256(buffer))
-
-  return fromPrivateKeyBuffer(buffer, options)
-}
-
-ECPair.prototype.getNetwork = function () {
-  return this.network
-}
-
-ECPair.prototype.getPublicKeyBuffer = function () {
-  return this.Q.getEncoded(this.compressed)
-}
-
-ECPair.prototype.neutered = function () {
-  return __fromPublicKeyPoint(this.Q, {
-    compressed: this.compressed,
-    network: this.network
-  })
-}
-
-ECPair.prototype.sign = function (hash) {
-  if (!this.d) throw new Error('Missing private key')
-
-  return ecdsa.sign(hash, this.d)
-}
-
-ECPair.prototype.toWIF = function () {
-  if (!this.d) throw new Error('Missing private key')
-
-  return wif.encode(this.network.wif, this.d.toBuffer(32), this.compressed)
-}
-
-ECPair.prototype.verify = function (hash, signature) {
-  return ecdsa.verify(hash, signature, this.Q)
 }
 
 module.exports = {
