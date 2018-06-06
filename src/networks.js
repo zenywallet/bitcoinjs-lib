@@ -37,6 +37,7 @@ module.exports = {
   },
   bitzeny: {
     messagePrefix: '\x18Bitzeny Signed Message:\n',
+    bech32: 'sz',
     bip32: {
       public: 0x0488b21e,
       private: 0x0488ade4
