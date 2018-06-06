@@ -6,6 +6,7 @@ const opcodes = require('bitcoin-ops')
 const typeforce = require('typeforce')
 const types = require('./types')
 const varuint = require('varuint-bitcoin')
+const UINT64 = require('cuint').UINT64
 
 function varSliceSize (someScript) {
   const length = someScript.length
@@ -66,7 +67,7 @@ Transaction.fromBuffer = function (buffer, __noStrict) {
   }
 
   function readUInt64 () {
-    const i = bufferutils.readUInt64LE(buffer, offset)
+    const i = UINT64(buffer.readUInt32LE(offset), buffer.readUInt32LE(offset + 4))
     offset += 8
     return i
   }
@@ -322,7 +323,17 @@ Transaction.prototype.hashForWitnessV0 = function (inIndex, prevOutScript, value
   let tbuffer, toffset
   function writeSlice (slice) { toffset += slice.copy(tbuffer, toffset) }
   function writeUInt32 (i) { toffset = tbuffer.writeUInt32LE(i, toffset) }
-  function writeUInt64 (i) { toffset = bufferutils.writeUInt64LE(tbuffer, i, toffset) }
+  function writeUInt64 (i) {
+    if(i instanceof UINT64) {
+      tbuffer.writeUInt16LE(i._a00, toffset)
+      tbuffer.writeUInt16LE(i._a16, toffset + 2)
+      tbuffer.writeUInt16LE(i._a32, toffset + 4)
+      tbuffer.writeUInt16LE(i._a48, toffset + 6)
+      toffset += 8
+    } else {
+      toffset = bufferutils.writeUInt64LE(tbuffer, i, toffset)
+    }
+  }
   function writeVarInt (i) {
     varuint.encode(i, tbuffer, toffset)
     toffset += varuint.encode.bytes
@@ -423,7 +434,17 @@ Transaction.prototype.__toBuffer = function (buffer, initialOffset, __allowWitne
   function writeUInt8 (i) { offset = buffer.writeUInt8(i, offset) }
   function writeUInt32 (i) { offset = buffer.writeUInt32LE(i, offset) }
   function writeInt32 (i) { offset = buffer.writeInt32LE(i, offset) }
-  function writeUInt64 (i) { offset = bufferutils.writeUInt64LE(buffer, i, offset) }
+  function writeUInt64 (i) {
+    if(i instanceof UINT64) {
+      buffer.writeUInt16LE(i._a00, offset)
+      buffer.writeUInt16LE(i._a16, offset + 2)
+      buffer.writeUInt16LE(i._a32, offset + 4)
+      buffer.writeUInt16LE(i._a48, offset + 6)
+      offset += 8
+    } else {
+      offset = bufferutils.writeUInt64LE(buffer, i, offset)
+    }
+  }
   function writeVarInt (i) {
     varuint.encode(i, buffer, offset)
     offset += varuint.encode.bytes
