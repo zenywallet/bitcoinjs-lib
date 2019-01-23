@@ -69,7 +69,7 @@ function toOutputScript (address, network) {
 
   if (decode) {
     if (decode.version === network.pubKeyHash) return payments.p2pkh({ hash: decode.hash }).output
-    if (decode.version === network.scriptHash) return payments.p2sh({ hash: decode.hash }).output
+    if (decode.version === network.scriptHash || decode.version === network.scriptHash2) return payments.p2sh({ hash: decode.hash }).output
   } else {
     try {
       decode = fromBech32(address)
