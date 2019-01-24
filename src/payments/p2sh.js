@@ -74,7 +74,7 @@ function p2sh (a, opts) {
     if (!o.hash) return
 
     const payload = Buffer.allocUnsafe(21)
-    payload.writeUInt8(network.scriptHash, 0)
+    payload.writeUInt8(network.scriptHash2 ? network.scriptHash2 : network.scriptHash, 0)
     o.hash.copy(payload, 1)
     return bs58check.encode(payload)
   })
@@ -113,7 +113,7 @@ function p2sh (a, opts) {
   if (opts.validate) {
     let hash
     if (a.address) {
-      if (_address().version !== network.scriptHash) throw new TypeError('Invalid version or Network mismatch')
+      if (_address().version !== network.scriptHash && _address().version !== network.scriptHash2) throw new TypeError('Invalid version or Network mismatch')
       if (_address().hash.length !== 20) throw new TypeError('Invalid address')
       hash = _address().hash
     }
