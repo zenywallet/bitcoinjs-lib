@@ -36,7 +36,7 @@ module.exports = {
     wif: 0xef
   },
   bitzeny: {
-    messagePrefix: '\x18Bitzeny Signed Message:\n',
+    messagePrefix: '\x18BitZeny Signed Message:\n',
     bech32: 'sz',
     bip32: {
       public: 0x0488b21e,
