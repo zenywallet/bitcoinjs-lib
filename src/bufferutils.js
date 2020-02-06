@@ -16,6 +16,13 @@ function readUInt64LE (buffer, offset) {
 }
 
 function writeUInt64LE (buffer, value, offset) {
+  if(value instanceof UINT64) {
+    buffer.writeUInt16LE(value._a00, offset)
+    buffer.writeUInt16LE(value._a16, offset + 2)
+    buffer.writeUInt16LE(value._a32, offset + 4)
+    buffer.writeUInt16LE(value._a48, offset + 6)
+    return offset + 8
+  }
   verifuint(value, 0x001fffffffffffff)
 
   buffer.writeInt32LE(value & -1, offset)

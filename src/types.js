@@ -1,4 +1,5 @@
 const typeforce = require('typeforce')
+const UINT64 = require('cuint').UINT64
 
 const UINT31_MAX = Math.pow(2, 31) - 1
 function UInt31 (value) {
@@ -12,7 +13,7 @@ BIP32Path.toJSON = function () { return 'BIP32 derivation path' }
 
 const SATOSHI_MAX = 21 * 1e14
 function Satoshi (value) {
-  return typeforce.UInt53(value) && value <= SATOSHI_MAX
+  return (value instanceof UINT64) || typeforce.UInt53(value) && value <= SATOSHI_MAX
 }
 
 // external dependent types
